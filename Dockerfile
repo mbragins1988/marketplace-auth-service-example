@@ -9,28 +9,21 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PATH="/root/.local/bin:$PATH"
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh
 
 WORKDIR /app
 
-# Копируем ТОЛЬКО файлы зависимостей.
 COPY pyproject.toml uv.lock ./
-
-# Устанавливаем зависимости (этот слой кэшируется, пока не изменился pyproject.toml)
+RUN pip install uv
 RUN uv sync --frozen --no-install-project --no-dev
 
-# Копируем весь код
-COPY . /app/
+COPY . .
 
-# Устанавливаем сам проект
 RUN uv sync --frozen --no-dev
-
-# Entrypoint
-RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["uv", "run", "python", "-m", "bin.api"]
