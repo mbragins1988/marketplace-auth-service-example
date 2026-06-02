@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export PATH="/root/.local/bin:$PATH"
+
 cd /app
 
 echo "Applying database migrations..."
