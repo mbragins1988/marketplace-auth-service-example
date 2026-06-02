@@ -24,6 +24,10 @@ COPY . .
 
 RUN uv sync --frozen --no-dev
 
+# Копируем существующий entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8000
 
-CMD ["uv", "run", "python", "-m", "bin.api"]
+ENTRYPOINT ["/entrypoint.sh"]
