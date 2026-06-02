@@ -11,22 +11,26 @@ ENV PYTHONUNBUFFERED=1 \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+    rm -rf /var/lib/apt/lists/* && \
+    curl -LsSf https://astral.sh/uv/install.sh | sh
 
 WORKDIR /app
 
+# Копируем ТОЛЬКО файлы зависимостей (для кэширования)
 COPY pyproject.toml uv.lock ./
+
+# Устанавливаем зависимости (этот слой кэшируется, пока не изменился pyproject.toml)
 RUN uv sync --frozen --no-install-project --no-dev
 
-COPY . .
+# Копируем весь код
+COPY . /app/
 
+# Устанавливаем сам проект
 RUN uv sync --frozen --no-dev
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Entrypoint
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
