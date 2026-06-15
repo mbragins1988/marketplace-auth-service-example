@@ -9,24 +9,21 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PATH="/root/.local/bin:$PATH"
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh
 
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
+RUN pip install uv
 RUN uv sync --frozen --no-install-project --no-dev
-
-COPY alembic.ini .
-COPY migrations/ ./migrations/
 
 COPY . .
 
 RUN uv sync --frozen --no-dev
 
-<<<<<<< HEAD
 # Копируем существующий entrypoint.sh
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
@@ -34,9 +31,3 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
-=======
-# Делаем entrypoint исполняемым
-RUN chmod +x entrypoint.sh
-
-ENTRYPOINT ["./entrypoint.sh"]
->>>>>>> 854fa84 (alembic fix)
