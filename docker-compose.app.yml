@@ -15,30 +15,17 @@ services:
     networks:
       - marketplace
 
-  auth-migrate:
-    build:
-      context: .
-    command: ["uv", "run", "alembic", "upgrade", "head"]
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@auth-postgres:5432/auth_db
-    depends_on:
-      auth-postgres:
-        condition: service_healthy
-    networks:
-      - marketplace
-
   auth-service:
     build:
       context: .
-    command: ["uv", "run", "python", "-m", "bin.api"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@auth-postgres:5432/auth_db
+      POSTGRES_CONNECTION_STRING: postgresql+asyncpg://postgres:postgres@auth-postgres:5432/auth_db
       JWT_SECRET: ${JWT_SECRET:-change-me}
+    ports:
+      - "8000:8000"
     depends_on:
       auth-postgres:
         condition: service_healthy
-      auth-migrate:
-        condition: service_completed_successfully
     networks:
       - marketplace
 
